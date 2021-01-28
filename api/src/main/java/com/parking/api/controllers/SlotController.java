@@ -2,6 +2,9 @@ package com.parking.api.controllers;
 
 import com.parking.api.models.*;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -24,6 +27,8 @@ public class SlotController {
     /** connection to the backend database */
     @Autowired
     private JdbcTemplate jtm;
+
+    Logger logger = LoggerFactory.getLogger(SlotController.class);
 
     @RequestMapping("/ping")
     public String ping() {
@@ -50,26 +55,24 @@ public class SlotController {
         if (slot.size() == 0) {
             throw new SlotNotFoundException(slotId);
         }
-
         return slot.get(0);
     }
 
-    @GetMapping("/slot/book")
-    public ParkingSlot bookSlot(@RequestParam(value = "slotId") Long slotId,
+    @GetMapping("/slot/park")
+    public ParkingSlot bookSlot(@RequestParam(value = "type") String type,
                                 @RequestParam(value = "carId") String carId) {
 
-        System.out.println(String.format("slotId: %d, carId: %s", slotId, carId));
+        logger.info(String.format("[booking request] type: %s, carId: %s", type, carId));
 
-        String sql = "SELECT * FROM SLOT WHERE ID = " + slotId;
-        List<ParkingSlot> slot = jtm.query(sql, new BeanPropertyRowMapper<>(ParkingSlot.class));
-        if (slot.size() == 0) {
-            throw new SlotNotFoundException(slotId);
-        }
-        if (! slot.get(0).getIsAvailable()) {
-            throw new SlotNotAvailableException(slotId);
+        String sql = String.format(
+            "SELECT * FROM SLOT WHERE IS_AVAILABLE = TRUE AND TYPE = '%s'", type);
+
+        List<ParkingSlot> slots = jtm.query(sql, new BeanPropertyRowMapper<>(ParkingSlot.class));
+        if (slots.size() == 0) {
+            throw new NoSlotAvailableException(type);
         }
 
-        return slot.get(0);
+        return slots.get(0);
     }
 
     // @RequestMapping("/slot/status/{slotId}")
@@ -84,8 +87,8 @@ public class SlotController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
     }
 
-    @ExceptionHandler(SlotNotAvailableException.class)
-    public ResponseEntity<String> slotNotAvailable(SlotNotAvailableException e) {
+    @ExceptionHandler(NoSlotAvailableException.class)
+    public ResponseEntity<String> noSlotAvailable(NoSlotAvailableException e) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
     }
 
