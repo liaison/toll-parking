@@ -8,7 +8,7 @@ import javax.persistence.Id;
 
 
 @Entity
-public class ParkingSlot {
+public class Slot {
 
   private @Id @GeneratedValue Long id;
   private String type;
@@ -16,9 +16,9 @@ public class ParkingSlot {
   private Boolean isAvailable;
 
 
-  ParkingSlot() {}
+  Slot() {}
 
-  ParkingSlot(String type, Integer billingPolicy) {
+  Slot(String type, Integer billingPolicy) {
     this.type = type;
     this.billingPolicy= billingPolicy;
   }
@@ -60,9 +60,9 @@ public class ParkingSlot {
 
     if (this == o)
       return true;
-    if (!(o instanceof ParkingSlot))
+    if (!(o instanceof Slot))
       return false;
-    ParkingSlot slot = (ParkingSlot) o;
+    Slot slot = (Slot) o;
     return Objects.equals(this.id, slot.id)
         && Objects.equals(this.type, slot.type)
         && Objects.equals(this.billingPolicy, slot.billingPolicy);
