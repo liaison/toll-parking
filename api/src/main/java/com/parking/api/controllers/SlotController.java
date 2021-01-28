@@ -54,6 +54,24 @@ public class SlotController {
         return slot.get(0);
     }
 
+    @GetMapping("/slot/book")
+    public ParkingSlot bookSlot(@RequestParam(value = "slotId") Long slotId,
+                                @RequestParam(value = "carId") String carId) {
+
+        System.out.println(String.format("slotId: %d, carId: %s", slotId, carId));
+
+        String sql = "SELECT * FROM SLOT WHERE ID = " + slotId;
+        List<ParkingSlot> slot = jtm.query(sql, new BeanPropertyRowMapper<>(ParkingSlot.class));
+        if (slot.size() == 0) {
+            throw new SlotNotFoundException(slotId);
+        }
+        if (! slot.get(0).getIsAvailable()) {
+            throw new SlotNotAvailableException(slotId);
+        }
+
+        return slot.get(0);
+    }
+
     // @RequestMapping("/slot/status/{slotId}")
     // public ParkingSlot getSlotStatus(@PathVariable Long slotId) {
     //     String sql = "SELECT * FROM SLOT WHERE ID = " + slotId;
@@ -66,5 +84,9 @@ public class SlotController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
     }
 
+    @ExceptionHandler(SlotNotAvailableException.class)
+    public ResponseEntity<String> slotNotAvailable(SlotNotAvailableException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+    }
 
 }
