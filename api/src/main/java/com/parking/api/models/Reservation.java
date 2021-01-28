@@ -2,6 +2,7 @@ package com.parking.api.models;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
 import java.time.LocalDateTime;
@@ -9,7 +10,8 @@ import java.time.LocalDateTime;
 @Entity
 public class Reservation {
 
-    private @Id @GeneratedValue Long id;
+    private @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    Long id;
     private Long slotId;
     private String carId;
     private LocalDateTime checkinDatetime;
@@ -19,6 +21,7 @@ public class Reservation {
     public Reservation(Long slotId, String carId) {
         this.slotId = slotId;
         this.carId = carId;
+        this.checkinDatetime = LocalDateTime.now();
     }
 
     public Long getSlotId() {
@@ -37,11 +40,11 @@ public class Reservation {
         this.carId = carId;
     }
 
-    public LocalDateTime getCheckDatetime() {
+    public LocalDateTime getCheckinDatetime() {
         return this.checkinDatetime;
     }
 
-    public void setCheckDatetime(LocalDateTime checkinDatetime) {
+    public void setCheckinDatetime(LocalDateTime checkinDatetime) {
         this.checkinDatetime = checkinDatetime;
     }
 }
