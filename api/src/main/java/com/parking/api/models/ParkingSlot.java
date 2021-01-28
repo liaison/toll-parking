@@ -1,4 +1,4 @@
-package com.parking.api;
+package com.parking.api.models;
 
 import java.util.Objects;
 
@@ -8,11 +8,12 @@ import javax.persistence.Id;
 
 
 @Entity
-class ParkingSlot {
+public class ParkingSlot {
 
   private @Id @GeneratedValue Long id;
   private String type;
   private Integer billingPolicy;
+  private Boolean isAvailable;
 
 
   ParkingSlot() {}
@@ -34,6 +35,10 @@ class ParkingSlot {
     return this.billingPolicy;
   }
 
+  public Boolean getIsAvailable() {
+    return this.isAvailable;
+  }
+
   public void setId(Long id) {
     this.id = id;
   }
@@ -44,6 +49,10 @@ class ParkingSlot {
 
   public void setBillingPolicy(Integer billingPolicy) {
     this.billingPolicy = billingPolicy;
+  }
+
+  public void setIsAvailable(Boolean isAvailable) {
+    this.isAvailable = isAvailable;
   }
 
   @Override

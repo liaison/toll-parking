@@ -1,4 +1,4 @@
-package com.parking.api;
+package com.parking.api.controllers;
 
 public class SlotNotFoundException extends RuntimeException {
 

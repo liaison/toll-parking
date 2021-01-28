@@ -1,4 +1,6 @@
-package com.parking.api;
+package com.parking.api.controllers;
+
+import com.parking.api.models.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -19,9 +21,19 @@ import java.util.List;
 @RestController
 public class SlotController {
 
+    /** connection to the backend database */
     @Autowired
     private JdbcTemplate jtm;
 
+    @RequestMapping("/ping")
+    public String ping() {
+        return "alive";
+    }
+
+    /**
+     * list all the parking slots
+     * @return
+     */
     @RequestMapping("/slot/list")
     public List<ParkingSlot> listSlots() {
 
@@ -34,11 +46,12 @@ public class SlotController {
     public ParkingSlot getSlotStatus(@RequestParam(value = "slotId") Long slotId) {
 
         String sql = "SELECT * FROM SLOT WHERE ID = " + slotId;
-        List<ParkingSlot> result = jtm.query(sql, new BeanPropertyRowMapper<>(ParkingSlot.class));
-        if (result.size() == 0) {
+        List<ParkingSlot> slot = jtm.query(sql, new BeanPropertyRowMapper<>(ParkingSlot.class));
+        if (slot.size() == 0) {
             throw new SlotNotFoundException(slotId);
         }
-        return result.get(0);
+
+        return slot.get(0);
     }
 
     // @RequestMapping("/slot/status/{slotId}")
