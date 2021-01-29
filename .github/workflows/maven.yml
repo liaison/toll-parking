@@ -20,7 +20,7 @@ jobs:
       with:
         java-version: 11.0.4
     - name: Maven Package
-      run: mvn -B clean package -DskipTests
+      run: mvn -B clean package -DskipTests -f api/pom.xml
     - name: Maven Verify
-      run: mvn -B clean verify -Pintegration-test
+      run: mvn -B clean verify -Pintegration-test -f api/pom.xml
     
