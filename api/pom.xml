@@ -10,15 +10,15 @@
 	</parent>
 	<groupId>com.parking</groupId>
 	<artifactId>api</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.1</version>
 
-	<distributionManagement>
-	  <repository>
+    <distributionManagement>
+      <repository>
         <id>github</id>
         <name>github packages</name>
         <url>https://maven.pkg.github.com/liaison/toll-parking</url>
       </repository>
-	</distributionManagement>
+    </distributionManagement>
 
 	<name>api</name>
 	<description>Java REST APIs for toll parking</description>
