@@ -1,4 +1,4 @@
-package com.parking.api.controllers;
+package com.parking.api.exceptions;
 
 public class SlotNotFoundException extends RuntimeException {
 
@@ -7,7 +7,7 @@ public class SlotNotFoundException extends RuntimeException {
    */
   private static final long serialVersionUID = 1L;
 
-  SlotNotFoundException(Long id) {
+  public SlotNotFoundException(Long id) {
       super(String.format("Could not find the slot (%d)!", id));
     }
 }

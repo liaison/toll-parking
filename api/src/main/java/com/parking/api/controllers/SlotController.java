@@ -1,6 +1,7 @@
 package com.parking.api.controllers;
 
 import com.parking.api.models.*;
+import com.parking.api.exceptions.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
