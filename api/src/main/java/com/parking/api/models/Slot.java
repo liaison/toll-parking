@@ -4,17 +4,18 @@ import java.util.Objects;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
 
 @Entity
 public class Slot {
 
-  private @Id @GeneratedValue Long id;
+  private @Id @GeneratedValue(strategy = GenerationType.IDENTITY) Long id;
+
   private String type;
   private Integer billingPolicy;
   private Boolean isAvailable;
-
 
   Slot() {}
 

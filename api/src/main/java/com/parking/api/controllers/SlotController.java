@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 
 @RestController
@@ -40,7 +41,6 @@ public class SlotController {
     @Autowired
     private BillingRepository billingRepository;
 
-
     Logger logger = LoggerFactory.getLogger(SlotController.class);
 
     @RequestMapping("/ping")
@@ -50,6 +50,7 @@ public class SlotController {
 
     /**
      * list all the parking slots
+     *
      * @return
      */
     @RequestMapping("/slot/list")
@@ -79,7 +80,7 @@ public class SlotController {
 
     @PostMapping("/slot/park")
     public Reservation bookSlot(@RequestParam(value = "type") String type,
-                                @RequestParam(value = "carId") String carId) {
+            @RequestParam(value = "carId") String carId) {
 
         logger.debug(String.format("[booking request] type: %s, carId: %s", type, carId));
 
@@ -87,7 +88,7 @@ public class SlotController {
         String isCarParkedSql = String.format(
             "SELECT * FROM RESERVATION WHERE CAR_ID = '%s'", carId);
         List<Reservation> reservations = jtm.query(
-            isCarParkedSql,new BeanPropertyRowMapper<>(Reservation.class));
+            isCarParkedSql, new BeanPropertyRowMapper<>(Reservation.class));
         if (reservations.size() > 0) {
             logger.info(String.format("Reservation for car (%s) exists already.", carId));
             return reservations.get(0);
@@ -110,11 +111,48 @@ public class SlotController {
         chosenSlot.setIsAvailable(false);
         slotRepository.save(chosenSlot);
         // create a reservation record
-        Reservation newReservation = new Reservation(chosenSlot.getId(), carId);
+        Reservation newReservation = new Reservation(
+            chosenSlot.getId(), carId, chosenSlot.getBillingPolicy());
         reservationRepository.save(newReservation);
         return newReservation;
     }
 
+    @PutMapping("/slot/leave")
+    public Billing leaveSlot(@RequestParam(value = "carId") String carId) {
+        logger.debug(String.format("[checkout request] carId: %s", carId));
+
+        // Case 1). check if the car is indeed parked.
+        String isCarParkedSql = String.format(
+            "SELECT * FROM RESERVATION WHERE CAR_ID = '%s'", carId);
+        List<Reservation> reservations = jtm.query(
+            isCarParkedSql, new BeanPropertyRowMapper<>(Reservation.class));
+        if (reservations.size() == 0) {
+            logger.error(String.format("Cannot find reservation for car (%s)!", carId));
+            throw new ReservationNotFoundException(carId);
+        }
+
+        // Case 2). checkout the car, and make a billing record.
+        // We should not have more than one reservation.
+        Reservation reservation = reservations.get(0);
+        Billing billing = new Billing(reservation.getSlotId(), reservation.getCarId(),
+                reservation.getCheckinDatetime(), reservation.getBillingPolicy());
+        billingRepository.save(billing);
+
+        // remove the reservation and free the slot.
+        reservationRepository.delete(reservation);
+        Optional<Slot> bookedSlot = slotRepository.findById(reservation.getSlotId());
+        if (! bookedSlot.isPresent()) {
+            logger.error(String.format("Cannot find the slot ()!", reservation.getId()));
+        } else {
+            // make the reserved slot available again
+            Slot slot = bookedSlot.get();
+            slot.setIsAvailable(true);
+            slotRepository.save(slot);
+        }
+
+        // return the billing record.
+        return billing;
+    }
 
     // @RequestMapping("/slot/status/{slotId}")
     // public ParkingSlot getSlotStatus(@PathVariable Long slotId) {
@@ -130,6 +168,11 @@ public class SlotController {
 
     @ExceptionHandler(NoSlotAvailableException.class)
     public ResponseEntity<String> noSlotAvailable(NoSlotAvailableException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+    }
+
+    @ExceptionHandler(ReservationNotFoundException.class)
+    public ResponseEntity<String> noReservationFound(ReservationNotFoundException e) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
     }
 
