@@ -68,12 +68,15 @@ public class SlotController {
     @GetMapping("/slot/status")
     public Slot getSlotStatus(@RequestParam(value = "slotId") Long slotId) {
 
-        String sql = "SELECT * FROM SLOT WHERE ID = " + slotId;
-        List<Slot> slot = jtm.query(sql, new BeanPropertyRowMapper<>(Slot.class));
-        if (slot.size() == 0) {
+        Slot slotQuery = new Slot();
+        slotQuery.setId(slotId);;
+        Example<Slot> slotQueryExample = Example.of(slotQuery);
+
+        Optional<Slot> result = slotRepository.findOne(slotQueryExample);
+        if (result.isEmpty()) {
             throw new SlotNotFoundException(slotId);
         }
-        return slot.get(0);
+        return result.get();
     }
 
     /**
@@ -87,7 +90,6 @@ public class SlotController {
             @RequestParam(value = "carId") String carId) {
 
         logger.debug(String.format("[booking request] type: %s, carId: %s", type, carId));
-
 
         // Case 1). check if the car has already been parked, to avoid double booking.
         Reservation reservationQuery = new Reservation();
