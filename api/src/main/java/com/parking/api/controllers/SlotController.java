@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -35,6 +37,8 @@ public class SlotController {
     private SlotRepository slotRepository;
     @Autowired
     private ReservationRepository reservationRepository;
+    @Autowired
+    private BillingRepository billingRepository;
 
 
     Logger logger = LoggerFactory.getLogger(SlotController.class);
@@ -73,21 +77,13 @@ public class SlotController {
         return slot.get(0);
     }
 
-    @GetMapping("/slot/park")
+    @PostMapping("/slot/park")
     public Reservation bookSlot(@RequestParam(value = "type") String type,
-                         @RequestParam(value = "carId") String carId) {
+                                @RequestParam(value = "carId") String carId) {
 
         logger.debug(String.format("[booking request] type: %s, carId: %s", type, carId));
 
-        // Step 1). check if there is any slot available.
-        String sql = String.format(
-            "SELECT * FROM SLOT WHERE IS_AVAILABLE = TRUE AND TYPE = '%s'", type);
-        List<Slot> slots = jtm.query(sql, new BeanPropertyRowMapper<>(Slot.class));
-        if (slots.size() == 0) {
-            throw new NoSlotAvailableException(type);
-        }
-
-        // Step 2). check if the car has already been parked, to avoid double booking.
+        // Case 1). check if the car has already been parked, to avoid double booking.
         String isCarParkedSql = String.format(
             "SELECT * FROM RESERVATION WHERE CAR_ID = '%s'", carId);
         List<Reservation> reservations = jtm.query(
@@ -97,14 +93,28 @@ public class SlotController {
             return reservations.get(0);
         }
 
-        // Step 3). create a new reservation for the new incoming car
+        // Case 2). a new incoming car, check if there is any slot available.
+        String sql = String.format(
+            "SELECT * FROM SLOT WHERE IS_AVAILABLE = TRUE AND TYPE = '%s'", type);
+        List<Slot> slots = jtm.query(sql, new BeanPropertyRowMapper<>(Slot.class));
+        if (slots.size() == 0) {
+            throw new NoSlotAvailableException(type);
+        }
+
+        // Case 3). create a new reservation for the new incoming car
         // randomly pick a slot
         Random rand = new Random();
         Slot chosenSlot = slots.get(rand.nextInt(slots.size()));
+
+        // mark the slot as reserved
+        chosenSlot.setIsAvailable(false);
+        slotRepository.save(chosenSlot);
+        // create a reservation record
         Reservation newReservation = new Reservation(chosenSlot.getId(), carId);
         reservationRepository.save(newReservation);
         return newReservation;
     }
+
 
     // @RequestMapping("/slot/status/{slotId}")
     // public ParkingSlot getSlotStatus(@PathVariable Long slotId) {
