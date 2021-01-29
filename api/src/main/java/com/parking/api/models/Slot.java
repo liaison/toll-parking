@@ -17,7 +17,7 @@ public class Slot {
   private Integer billingPolicy;
   private Boolean isAvailable;
 
-  Slot() {}
+  public Slot() {}
 
   public Slot(String type, Integer billingPolicy) {
     this.type = type;

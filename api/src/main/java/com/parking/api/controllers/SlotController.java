@@ -11,6 +11,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.data.domain.Example;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -87,20 +88,23 @@ public class SlotController {
 
         logger.debug(String.format("[booking request] type: %s, carId: %s", type, carId));
 
+
         // Case 1). check if the car has already been parked, to avoid double booking.
-        String isCarParkedSql = String.format(
-            "SELECT * FROM RESERVATION WHERE CAR_ID = '%s'", carId);
-        List<Reservation> reservations = jtm.query(
-            isCarParkedSql, new BeanPropertyRowMapper<>(Reservation.class));
+        Reservation reservationQuery = new Reservation();
+        reservationQuery.setCarId(carId);
+        Example<Reservation> reservationQueryExample = Example.of(reservationQuery);
+        List<Reservation> reservations = reservationRepository.findAll(reservationQueryExample);
         if (reservations.size() > 0) {
             logger.info(String.format("Reservation for car (%s) exists already.", carId));
             return reservations.get(0);
         }
 
         // Case 2). a new incoming car, check if there is any slot available.
-        String sql = String.format(
-            "SELECT * FROM SLOT WHERE IS_AVAILABLE = TRUE AND TYPE = '%s'", type);
-        List<Slot> slots = jtm.query(sql, new BeanPropertyRowMapper<>(Slot.class));
+        Slot slotQuery = new Slot();
+        slotQuery.setType(type);
+        slotQuery.setIsAvailable(true);
+        Example<Slot> slotQueryExample = Example.of(slotQuery);
+        List<Slot> slots = slotRepository.findAll(slotQueryExample);
         if (slots.size() == 0) {
             throw new NoSlotAvailableException(type);
         }

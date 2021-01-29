@@ -18,7 +18,7 @@ public class Reservation {
     private Integer billingPolicy;
     private LocalDateTime checkinDatetime;
 
-    Reservation() {}
+    public Reservation() {}
 
     public Reservation(Long slotId, String carId, Integer billingPolicy) {
         this.slotId = slotId;
