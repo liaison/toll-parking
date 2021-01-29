@@ -19,7 +19,7 @@ public class Slot {
 
   Slot() {}
 
-  Slot(String type, Integer billingPolicy) {
+  public Slot(String type, Integer billingPolicy) {
     this.type = type;
     this.billingPolicy= billingPolicy;
   }

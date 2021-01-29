@@ -6,6 +6,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Entity
 public class Reservation {
@@ -65,4 +66,19 @@ public class Reservation {
     public void setCheckinDatetime(LocalDateTime checkinDatetime) {
         this.checkinDatetime = checkinDatetime;
     }
+
+    @Override
+    public boolean equals(Object o) {
+
+      if (this == o)
+        return true;
+      if (!(o instanceof Reservation))
+        return false;
+      Reservation reservation = (Reservation) o;
+      return Objects.equals(this.id, reservation.id)
+          && Objects.equals(this.carId, reservation.carId)
+          && Objects.equals(this.checkinDatetime, reservation.checkinDatetime)
+          && Objects.equals(this.billingPolicy, reservation.billingPolicy);
+    }
+
 }

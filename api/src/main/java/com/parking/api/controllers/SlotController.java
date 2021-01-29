@@ -16,13 +16,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -55,19 +55,15 @@ public class SlotController {
      * @return
      */
     @RequestMapping("/slot/list")
-    public List<Slot> listSlots() {
-
-        /** run the SQL query to retrieve records from the table directly. */
-        // String sql = "SELECT * FROM SLOT;";
-        // return jtm.query(sql, new BeanPropertyRowMapper<>(ParkingSlot.class));
-
-        List<Slot> slotList = new ArrayList<Slot>();
-        for (Slot slot : slotRepository.findAll()) {
-            slotList.add(slot);
-        }
-        return slotList;
+    public @ResponseBody Iterable<Slot> listSlots() {
+        return slotRepository.findAll();
     }
 
+    /**
+     *  check the current status of the slot, i.e. available or not
+     * @param slotId
+     * @return
+     */
     @GetMapping("/slot/status")
     public Slot getSlotStatus(@RequestParam(value = "slotId") Long slotId) {
 
@@ -79,6 +75,12 @@ public class SlotController {
         return slot.get(0);
     }
 
+    /**
+     *  Request a parking slot, if available, park the car.
+     * @param type
+     * @param carId
+     * @return
+     */
     @PostMapping("/slot/park")
     public Reservation bookSlot(@RequestParam(value = "type") String type,
             @RequestParam(value = "carId") String carId) {
@@ -118,6 +120,11 @@ public class SlotController {
         return newReservation;
     }
 
+    /**
+     *  Check out the parking slot, and make a billing.
+     * @param carId
+     * @return
+     */
     @PutMapping("/slot/leave")
     public Billing leaveSlot(@RequestParam(value = "carId") String carId) {
         logger.debug(String.format("[checkout request] carId: %s", carId));
