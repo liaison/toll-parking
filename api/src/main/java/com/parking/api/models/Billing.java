@@ -20,6 +20,8 @@ public class Billing {
     private Integer billingPolicy;
     private Double billingAmount;
 
+    public Billing() {}
+
     public Billing(Long slotId, String carId, LocalDateTime checkinDatetime,
                    Integer billingPolicy) {
         this.slotId = slotId;

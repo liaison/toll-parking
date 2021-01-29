@@ -136,21 +136,22 @@ public class SlotController {
         logger.debug(String.format("[checkout request] carId: %s", carId));
 
         // Case 1). check if the car is indeed parked.
-        String isCarParkedSql = String.format(
-            "SELECT * FROM RESERVATION WHERE CAR_ID = '%s'", carId);
-        List<Reservation> reservations = jtm.query(
-            isCarParkedSql, new BeanPropertyRowMapper<>(Reservation.class));
-        if (reservations.size() == 0) {
+        Reservation reservationQuery = new Reservation();
+        reservationQuery.setCarId(carId);
+        Example<Reservation> reservationQueryExample = Example.of(reservationQuery);
+        Optional<Reservation> reservations = reservationRepository.findOne(reservationQueryExample);
+
+        if (reservations.isEmpty()) {
             logger.error(String.format("Cannot find reservation for car (%s)!", carId));
             throw new ReservationNotFoundException(carId);
         }
 
         // Case 2). checkout the car, and make a billing record.
         // We should not have more than one reservation.
-        Reservation reservation = reservations.get(0);
+        Reservation reservation = reservations.get();
         Billing billing = new Billing(reservation.getSlotId(), reservation.getCarId(),
                 reservation.getCheckinDatetime(), reservation.getBillingPolicy());
-        billingRepository.save(billing);
+        billing = billingRepository.save(billing);
 
         // remove the reservation and free the slot.
         reservationRepository.delete(reservation);
