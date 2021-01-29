@@ -17,8 +17,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.ArrayList;
 
+/**
+ *  Run some integration tests
+ */
 //@SpringBootTest
-
 //@RunWith(SpringRunner.class)
 @SpringBootTest(classes = ApiApplication.class)
 class ApiApplicationTests {
