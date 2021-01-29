@@ -62,5 +62,4 @@ class ApiApplicationTests {
 		Optional<Reservation> foundReservation = reservationRepository.findById(1L);
 		assertEquals(newReservation, foundReservation.get());
     }
-
 }
