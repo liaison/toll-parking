@@ -8,30 +8,38 @@ import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
 
-import org.springframework.dao.EmptyResultDataAccessException;
+// import org.springframework.jdbc.core.BeanPropertyRowMapper;
+// import org.springframework.dao.EmptyResultDataAccessException;
+// import org.springframework.web.bind.annotation.PathVariable;
+// import org.springframework.web.bind.annotation.RequestMapping;
+
 import org.springframework.data.domain.Example;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 
 @RestController
+@Api(description = "Set of endpoints for Listing, Booking, and Releasing parking slots.")
 public class SlotController {
 
-    /** connection to the backend database */
+    /** a direct connection to the backend database */
     @Autowired
     private JdbcTemplate jtm;
 
@@ -45,7 +53,8 @@ public class SlotController {
 
     Logger logger = LoggerFactory.getLogger(SlotController.class);
 
-    @RequestMapping("/ping")
+    @GetMapping("/ping")
+    @ApiOperation("A simple endpoint to check the sanity of APIs")
     public String ping() {
         return "alive";
     }
@@ -55,7 +64,8 @@ public class SlotController {
      *
      * @return
      */
-    @RequestMapping("/slot/list")
+    @GetMapping("/slot/list")
+    @ApiOperation("Returns list of parking slots in the system.")
     public @ResponseBody Iterable<Slot> listSlots() {
         return slotRepository.findAll();
     }
@@ -66,7 +76,10 @@ public class SlotController {
      * @return
      */
     @GetMapping("/slot/status")
-    public Slot getSlotStatus(@RequestParam(value = "slotId") Long slotId) {
+    @ApiOperation("Get the status on a particular parking slot.")
+    public Slot getSlotStatus(
+        @ApiParam("ID of the parking slot, e.g. 1")
+            @RequestParam(value = "slotId") Long slotId) {
 
         Slot slotQuery = new Slot();
         slotQuery.setId(slotId);;
@@ -86,7 +99,14 @@ public class SlotController {
      * @return
      */
     @PostMapping("/slot/park")
-    public Reservation bookSlot(@RequestParam(value = "type") String type,
+    @ApiOperation("Reserve a parking slot, given a car.")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Car is parked successfully."),
+        @ApiResponse(code = 404, message = "Not suitable parking slot is available.") })
+    public Reservation bookSlot(
+        @ApiParam("Type of car to park, e.g. sedan, EV-20KW, EV-50KW.")
+            @RequestParam(value = "type") String type,
+        @ApiParam("ID of the car, e.g. EV-XXX-ZZ.")
             @RequestParam(value = "carId") String carId) {
 
         logger.debug(String.format("[booking request] type: %s, carId: %s", type, carId));
@@ -132,7 +152,14 @@ public class SlotController {
      * @return
      */
     @PutMapping("/slot/leave")
-    public Billing leaveSlot(@RequestParam(value = "carId") String carId) {
+    @ApiOperation("Release the parking slot that is occupied by a given car.")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Slot is released successfully."),
+        @ApiResponse(code = 404, message = "No reservation for the given car is found.") })
+    public Billing leaveSlot(
+        @ApiParam("ID of the car, e.g. EV-XXX-ZZ.")
+            @RequestParam(value = "carId") String carId) {
+
         logger.debug(String.format("[checkout request] carId: %s", carId));
 
         // Case 1). check if the car is indeed parked.
