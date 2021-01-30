@@ -1,0 +1,106 @@
+{
+	"info": {
+		"_postman_id": "9aef7a8c-d215-4040-9af4-f6abb94873e4",
+		"name": "TollParking",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "ping",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "localhost:8080/ping"
+			},
+			"response": []
+		},
+		{
+			"name": "list_slots",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "localhost:8080/slot/list"
+			},
+			"response": []
+		},
+		{
+			"name": "slot_park",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/slot/park?type=EV-20KW&carId=EV-XXX-ZZ",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"slot",
+						"park"
+					],
+					"query": [
+						{
+							"key": "type",
+							"value": "EV-20KW"
+						},
+						{
+							"key": "carId",
+							"value": "EV-XXX-ZZ"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "slot_leave",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/slot/leave?carId=EV-XXX-ZZ",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"slot",
+						"leave"
+					],
+					"query": [
+						{
+							"key": "carId",
+							"value": "EV-XXX-ZZ"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "slot_status",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/slot/status?slotId=1",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"slot",
+						"status"
+					],
+					"query": [
+						{
+							"key": "slotId",
+							"value": "1"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
