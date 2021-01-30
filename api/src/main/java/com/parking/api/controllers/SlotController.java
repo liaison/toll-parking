@@ -149,9 +149,10 @@ public class SlotController {
         // Case 2). checkout the car, and make a billing record.
         // We should not have more than one reservation.
         Reservation reservation = reservations.get();
+        // Note: the cost is calculated inside the Billing bean class.
         Billing billing = new Billing(reservation.getSlotId(), reservation.getCarId(),
                 reservation.getCheckinDatetime(), reservation.getBillingPolicy());
-        billing = billingRepository.save(billing);
+        billing = billingRepository.save(billing);  // save the billing record to db
 
         // remove the reservation and free the slot.
         reservationRepository.delete(reservation);
@@ -178,16 +179,19 @@ public class SlotController {
 
     @ExceptionHandler(SlotNotFoundException.class)
     public ResponseEntity<String> noSlotFound(SlotNotFoundException e) {
+        logger.error(e.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
     }
 
     @ExceptionHandler(NoSlotAvailableException.class)
     public ResponseEntity<String> noSlotAvailable(NoSlotAvailableException e) {
+        logger.error(e.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
     }
 
     @ExceptionHandler(ReservationNotFoundException.class)
     public ResponseEntity<String> noReservationFound(ReservationNotFoundException e) {
+        logger.error(e.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
     }
 
