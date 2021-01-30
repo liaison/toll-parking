@@ -4,6 +4,7 @@ This is a demo project that demonstrates how to build a full-fledged RESTful API
 
 Also, the project demonstrates how to integrate various services and frameworks, such as [Swagger UI](https://swagger.io/tools/swagger-ui/) for API documentation, [H2 database](https://www.h2database.com/html/main.html) to manage the data, and how to package the APIs with [maven](https://maven.apache.org/) and [docker](https://www.docker.com/).
 
+In addition, this project utilises the **CI/CD** functionalities provided by the [Github Actions](https://github.com/liaison/toll-parking/actions) and [Github Packages](https://github.com/liaison?tab=packages&repo_name=toll-parking) services.
 
 ### Application Scenarios
 
@@ -131,10 +132,16 @@ At each push to the github branches, some pre-configured pipeline in Github Acti
 
 
 ##### H2 Console
-For the purpose of testing and debugging, we enable a web interface for one to access the backend database during the running time.
+
+For the purposes of testing and debugging, we enable a web interface for one to access the backend database during the running time.
 
 While the APIs are running, one can access the console of h2 database via the URL of [http://localhost:8080/h2-console](http://localhost:8080/h2-console).
 One could find the login details in the **application.properties** file.
+Here is what h2 console looks like:
 
+![h2 console](doc/h2_console.png)
 
+Notably in the above graph, it shows that the car with the `carId=EX-XXX-ZZ` currently holds the parking slot of `slotId=3` in the table of **Reservation**.
+Therefore, accordingly, in the table of **Slot**, the slot (`slotId=3`) is marked as not available.
+Finally, in the table of **Billing**, it indicates that the car (`carId=EX-XXX-ZZ`) used to park on the same parking slot (`slotId=3`) not long ago.
 
