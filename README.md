@@ -25,7 +25,7 @@ Here are some conditions and requirements:
 ![architecture](./doc/architecture.png)
 
 As illustrated above, the architecture is rather intuitive, where mostly the Spring Boot framework does the heavy-lifting.
-To manage the data that is associating with the parking, we branch a SQL database (_i.e._ [h2db](https://www.h2database.com/html/main.html)) in the backend.
+To manage the data that is associating with the parking, we attach a SQL database (_i.e._ [h2db](https://www.h2database.com/html/main.html)) in the backend.
 It consists of three tables, namely **Slot**, **Reservation** and **Billing**, which corresponds to three different entities as indicated by their names.
 
 We list the attributes and their types in each table as follows:
@@ -44,7 +44,7 @@ To change the behavior, one can adjust the settings in the **application.propert
 In this project, we provide several ways to deploy and run the APIs.
 We demonstrate the prerequisites and the steps of each way in this section.
 
-#### Docker
+##### Docker
 
 Arguably it is the most intuitive to run the APIs with Docker which recreates the entire virtual environment.
 
@@ -64,11 +64,11 @@ $> docker run -dp 8080:8080 toll_parking
 After the above steps, one should have the APIs running at the address of [http://localhost:8080](http://localhost:8080)
 
 
-#### Maven
+##### Maven
 
 One could also manually package the API into a fat jar, and then simply run the jar with Java.
 
-Before running the commands, one should first install a proper JDK environment (OpenJDK version 11 is recommended).
+Before running the commands, one should first install a proper JDK environment (OpenJDK version 11 is recommended here).
 
 ```shell
 # clone the git repository of the project
@@ -81,7 +81,7 @@ $api> ./mvnw -B clean package -DskipTests
 $api> java -jar target/api-0.0.1.jar
 ```
 
-Also, one could download the prebuilt fat jar directly from the [Github Packages](https://github.com/liaison?tab=packages&repo_name=toll-parking) repository, instead of compiling it locally.
+As an alternative, one could download the prebuilt fat jar directly from the [Github Packages](https://github.com/liaison?tab=packages&repo_name=toll-parking) repository, instead of compiling it locally.
 
 
 ### API Access
@@ -89,14 +89,14 @@ Also, one could download the prebuilt fat jar directly from the [Github Packages
 Once deployed, the APIs can be consumed with different tools.
 
 First of all, along with the APIs, we also deploy a web application called [Swagger UI](https://swagger.io/tools/swagger-ui/) that allows one to explore the APIs _interactively_.
-The Swagger UI can be accessed by browser with the URL of [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html). Here is a snapshot:
+The Swagger UI can be accessed by browser with the URL of [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html). Here is how it looks like:
 
 ![swagger UI](./doc/swagger_snapshot.png)
 
-With the Swagger UI, one can find detailed information about each API, concerning their purpose and the parameters they need.
+With the Swagger UI, one can find detailed information about each API, concerning its purpose and the parameters it needs.
 Even better, one can try out the API directly via the Swagger UI.
 
-#### HTTP Clients
+##### HTTP Clients
 
 Naturally, one can access the APIs via any tool that understands the HTTP protocol, _e.g._ the `curl` command-line tool on Linux, or [postman](https://www.postman.com/) (a desktop tool for testing).
 We attach a collection of postman requests in the **test** folder.
@@ -112,5 +112,29 @@ $> curl -X GET "http://localhost:8080/slot/list" -H "accept: */*"
 # example 2). park the car with the ID of "EV-XXX-ZZ" and the type of "EV-20KW"
 $> curl -X POST "http://localhost:8080/slot/park?carId=EV-XXX-ZZ&type=EV-20KW" -H "accept: */*"
 ```
+
+### Test and Debug
+
+We put in place some frameworks and procedures to facilitate the testing and debugging of the APIs.
+
+##### Unit Test Cases
+
+Under the folder of _"api/src/test"_, one can find a series of test cases that are dedicated to verify the behaviors of APIs.
+
+One can run the test cases locally with the following command:
+```shell
+$> ./mvnw test
+```
+
+More importantly, the unit test cases are parts of steps in our **CI/CD** pipeline.
+At each push to the github branches, some pre-configured pipeline in Github Actions would be triggered to ensure that the changes do not bring new problems.
+
+
+##### H2 Console
+For the purpose of testing and debugging, we enable a web interface for one to access the backend database during the running time.
+
+While the APIs are running, one can access the console of h2 database via the URL of [http://localhost:8080/h2-console](http://localhost:8080/h2-console).
+One could find the login details in the **application.properties** file.
+
 
 
