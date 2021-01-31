@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.annotation.Transactional;
 
 // import org.springframework.jdbc.core.BeanPropertyRowMapper;
 // import org.springframework.dao.EmptyResultDataAccessException;
@@ -136,15 +137,40 @@ public class SlotController {
         Random rand = new Random();
         Slot chosenSlot = slots.get(rand.nextInt(slots.size()));
 
-        // mark the slot as reserved
-        chosenSlot.setIsAvailable(false);
-        slotRepository.save(chosenSlot);
+        // A runtime exception would be thrown here if there is potential concurrency.
+        // But the integrity of the database still holds,
+        //   thanks to the UNIQUE constraints and transaction rollback.
+        return createReservationAndUpdateSlot(chosenSlot, carId);
+    }
+
+    /**
+     *  Create a new reservation and update the status of the slot.
+     *  In order for the reservation to succeed, both the carId and slotId
+     *    should be unique to avoid any duplicated reservation.
+     * @param chosenSlot
+     * @param carId
+     * @return
+     */
+    @Transactional
+    public Reservation createReservationAndUpdateSlot(Slot chosenSlot, String carId) {
+        // Transactional operation 1). create a new reservation
         // create a reservation record
         Reservation newReservation = new Reservation(
             chosenSlot.getId(), carId, chosenSlot.getBillingPolicy());
+        // Note: if there are more than one reservation for the same car
+        //   or there are more than one reservation for the same parking slot,
+        //   the insertion should fail here.
         reservationRepository.save(newReservation);
+
+        // Transactional operation 2). update the status of the slot
+        // mark the slot as reserved
+        chosenSlot.setIsAvailable(false);
+        slotRepository.save(chosenSlot);
+
+        // If all operations are ok, return the newly-created reservation
         return newReservation;
     }
+
 
     /**
      *  Check out the parking slot, and make a billing.
@@ -176,12 +202,26 @@ public class SlotController {
         // Case 2). checkout the car, and make a billing record.
         // We should not have more than one reservation.
         Reservation reservation = reservations.get();
+
+        // remove the reservation and free the slot.
+        /**
+         * Note: if the following transaction fails, the changes would be reverted.
+         *  And more importantly the customer will not be factured twice.
+         */
+        removeReservationAndUpdateSlot(reservation);
+
         // Note: the cost is calculated inside the Billing bean class.
         Billing billing = new Billing(reservation.getSlotId(), reservation.getCarId(),
                 reservation.getCheckinDatetime(), reservation.getBillingPolicy());
         billing = billingRepository.save(billing);  // save the billing record to db
 
-        // remove the reservation and free the slot.
+        // return the billing record.
+        return billing;
+    }
+
+    @Transactional
+    public void removeReservationAndUpdateSlot(Reservation reservation) {
+        // If the reservation has already been billed, this operation will fail.
         reservationRepository.delete(reservation);
         Optional<Slot> bookedSlot = slotRepository.findById(reservation.getSlotId());
         if (! bookedSlot.isPresent()) {
@@ -192,9 +232,6 @@ public class SlotController {
             slot.setIsAvailable(true);
             slotRepository.save(slot);
         }
-
-        // return the billing record.
-        return billing;
     }
 
     // @RequestMapping("/slot/status/{slotId}")
